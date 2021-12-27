@@ -46,6 +46,15 @@ class VL53L1xUserRoi:
         self.bot_right_x = brx
         self.bot_right_y = bry
 
+class DataTuple(Structure):
+    _fields_ = [
+        ('distance', c_int32),
+        ('sigma', c_uint32),
+        ('ambient', c_uint32),
+        ('reflectance', c_uint32),
+        ('spadcnt', c_uint16),
+        ('status', c_uint8)
+    ]
 
 # Read/write function pointer types.
 _I2C_MULTI_FUNC = CFUNCTYPE(c_int, c_ubyte, c_ubyte)
@@ -71,6 +80,7 @@ for lib_location in _POSSIBLE_LIBRARY_LOCATIONS:
         lib_file = files[0]
         try:
             _TOF_LIBRARY = CDLL(lib_file)
+            _TOF_LIBRARY.getData.restype = POINTER(DataTuple)
             # print("Using: " + lib_location + "/vl51l1x_python.so")
             break
         except OSError:
@@ -78,16 +88,6 @@ for lib_location in _POSSIBLE_LIBRARY_LOCATIONS:
             pass
 else:
     raise OSError('Could not find vl53l1x_python.so')
-
-class DataTuple(Structure):
-    _fields_ = [
-        ('distance', c_int32),
-        ('sigma', c_uint32),
-        ('ambient', c_uint32),
-        ('reflectance', c_uint32),
-        ('spadcnt', c_uint16),
-        ('status', c_uint8)
-    ]
 
 class VL53L1X:
     """VL53L1X ToF."""
