@@ -207,3 +207,33 @@ void stopRanging(VL53L1_Dev_t *dev)
 {
     VL53L1_StopMeasurement(dev);
 }
+
+typedef struct {
+    int32_t distance; // mm
+    uint32_t sigma; // mm
+    uint32_t ambient;
+    uint32_t reflectance;
+    uint16_t spadcnt;
+    uint8_t status;
+} DataTuple;
+
+static DataTuple currData;
+static DataTuple *result = &currData;
+
+DataTuple *getData(VL53L1_Dev_t *dev)
+{
+    VL53L1_Error Status = VL53L1_ERROR_NONE;
+    Status = VL53L1_WaitMeasurementDataReady(dev);
+    Status = VL53L1_GetRangingMeasurementData(dev, pRangingMeasurementData);
+        
+    result->distance = pRangingMeasurementData->RangeMilliMeter;
+    result->sigma = pRangingMeasurementData->SigmaMilliMeter;
+    result->ambient = pRangingMeasurementData->AmbientRateRtnMegaCps;
+    result->reflectance = pRangingMeasurementData->SignalRateRtnMegaCps;
+    result->spadcnt = pRangingMeasurementData->EffectiveSpadRtnCount;
+    result->status = pRangingMeasurementData->RangeStatus;
+
+    VL53L1_ClearInterruptAndStartMeasurement(dev);
+    return result;
+}
+

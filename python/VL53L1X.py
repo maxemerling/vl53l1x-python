@@ -21,7 +21,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from ctypes import CDLL, CFUNCTYPE, POINTER, c_int, c_uint, pointer, c_ubyte, c_uint8, c_uint32
+from ctypes import CDLL, CFUNCTYPE, POINTER, c_int, c_int32, c_uint, pointer, c_ubyte, c_uint8, c_uint32, Structure, c_uint16
 from smbus2 import SMBus, i2c_msg
 import os
 import site
@@ -79,6 +79,15 @@ for lib_location in _POSSIBLE_LIBRARY_LOCATIONS:
 else:
     raise OSError('Could not find vl53l1x_python.so')
 
+class DataTuple(Structure):
+    _fields_ = [
+        ('distance', c_int32),
+        ('sigma', c_uint32),
+        ('ambient', c_uint32),
+        ('reflectance', c_uint32),
+        ('spadcnt', c_uint16),
+        ('status', c_uint8)
+    ]
 
 class VL53L1X:
     """VL53L1X ToF."""
@@ -190,6 +199,10 @@ class VL53L1X:
     def get_distance(self):
         """Get distance from VL53L1X ToF Sensor"""
         return _TOF_LIBRARY.getDistance(self._dev)
+
+    def get_data(self):
+        data = _TOF_LIBRARY.getData(self._dev).contents
+        return data.distance, data.sigma, data.ambient, data.reflectance, data.spadcnt, data.status
 
     def set_timing(self, timing_budget, inter_measurement_period):
         """Set the timing budget and inter measurement period.
